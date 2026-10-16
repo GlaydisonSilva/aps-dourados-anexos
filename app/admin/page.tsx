@@ -1,0 +1,1 @@
+export default function Admin(){return <main className="container content"><h1>Painel administrativo</h1><p>O gerenciamento de documentos será disponibilizado após a configuração da autenticação e do banco de dados.</p><div className="empty">Por segurança, esta versão não permite alterar documentos. Não armazene senhas no código.</div></main>}
