@@ -1,12 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { documents } from '../../../lib/documents';
+import {NextRequest,NextResponse} from 'next/server';
+import {createClient} from '@supabase/supabase-js';
 export async function GET(request:NextRequest){
- const url=request.nextUrl.searchParams.get('url');
- const doc=documents.find(d=>d.url===url);
- if(!doc||!url||!url.startsWith('https://'))return new NextResponse('Documento não encontrado.',{status:404});
- try{const source=await fetch(url,{signal:AbortSignal.timeout(12000)});
- if(!source.ok||!source.headers.get('content-type')?.toLowerCase().includes('pdf'))return new NextResponse('PDF indisponível.',{status:502});
- const bytes=await source.arrayBuffer(); if(bytes.byteLength>20*1024*1024)return new NextResponse('Arquivo excede 20 MB.',{status:413});
- return new NextResponse(bytes,{headers:{'Content-Type':'application/pdf','Content-Disposition':`attachment; filename="documento-${doc.id.replace(/[^a-zA-Z0-9_-]/g,'')}.pdf"`,'Cache-Control':'no-store'}});
- }catch{return new NextResponse('Falha ao obter o PDF.',{status:502})}
+const id=request.nextUrl.searchParams.get('id');if(!id||!/^[0-9a-f-]{36}$/i.test(id))return new NextResponse('Documento inválido',{status:400});
+const url=process.env.NEXT_PUBLIC_SUPABASE_URL,key=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;if(!url||!key)return new NextResponse('Configuração pendente',{status:503});
+const client=createClient(url,key);const {data}=await client.from('documentos').select('arquivo_path,titulo').eq('id',id).eq('publicado',true).maybeSingle();if(!data)return new NextResponse('Documento não encontrado',{status:404});
+const {data:file,error}=await client.storage.from('documentos-pdf').download(data.arquivo_path);if(error||!file)return new NextResponse('PDF indisponível',{status:502});
+const safe=data.titulo.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9_-]+/g,'-').slice(0,80)||'documento';return new NextResponse(await file.arrayBuffer(),{headers:{'Content-Type':'application/pdf','Content-Disposition':`attachment; filename="${safe}.pdf"`,'Cache-Control':'no-store'}});
 }

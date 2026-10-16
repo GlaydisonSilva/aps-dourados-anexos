@@ -1,22 +1,13 @@
-# APS Dourados MS – Anexos (etapa 2)
-
-Projeto Next.js com menu Início, Requerimentos, Passo a Passo, Orientações e Outros. As páginas internas exibem cards com título, etiqueta, descrição, data, visualizar e baixar PDF. Busca e filtros disponíveis.
-
-## Executar localmente
-
-1. Instale Node.js 20 ou superior.
-2. Abra a pasta do projeto no terminal.
-3. Execute `npm install` e depois `npm run dev`.
-4. Acesse `http://localhost:3000`.
-
-## Cadastrar documentos provisoriamente
-
-Edite `lib/documents.ts`, adicionando registros à lista `documents`, usando apenas URLs HTTPS públicas e diretas para arquivos PDF. Campos: `id`, `title`, `category`, `tag`, `description`, `url`, `updatedAt` (DD/MM/AAAA). Os cards só aparecem após cadastrar documentos reais. O botão visualizar abre o link em nova aba; o botão baixar utiliza a rota `/api/download` para forçar download de PDFs válidos (limite 20 MB). URLs que exijam autenticação não funcionarão.
-
-## Próxima etapa
-
-Implementar autenticação, banco de dados e armazenamento de PDFs. `/admin` é apenas uma página informativa e **não** permite gerenciar arquivos ainda. Não publicar PDFs internos ou documentos com dados pessoais sem autorização e controles de acesso apropriados.
+# APS Dourados MS – Anexos — Etapa 8
 
 ## Publicação
+1. Substitua os arquivos do repositório GitHub pelo conteúdo deste ZIP, preservando as pastas.
+2. No Supabase, em Project Settings / API Keys, copie a **Project URL** e a chave **anon/public** (ou publishable compatível). **Nunca use service_role/secret no navegador.**
+3. Na Vercel, em Project > Settings > Environment Variables, cadastre `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY` para Production e Preview.
+4. Faça um novo deploy (Redeploy) após salvar as variáveis.
+5. Abra `/admin`, entre com o usuário já criado no Supabase e cadastre um PDF de teste sem dados pessoais.
 
-Pode ser hospedado na Vercel após conectar um repositório GitHub. O subdomínio desejado depende de disponibilidade.
+## Segurança
+O banco usa RLS e a função `eh_administrador()` já criada na etapa anterior. Somente administradores autenticados podem modificar dados. Os PDFs no bucket público ficam acessíveis a qualquer pessoa que possua a URL, mesmo quando o registro estiver como rascunho. Não envie documentos sigilosos.
+
+A data é gerenciada pelo trigger do banco. O arquivo PDF é opcional ao editar um cadastro existente. Não há suporte a agendamento ou histórico de versões.
